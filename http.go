@@ -23,14 +23,26 @@ func httpClient() *http.Client {
 }
 
 func (conn SplunkConnection) httpGet(url string, data *url.Values) (string, error) {
-        return conn.httpCall(url, "GET", data)
+	if response, err := conn.httpCall(url,"GET",data);err != nil {
+		return "", err
+	} else {
+		body, _ := ioutil.ReadAll(response.Body)
+		response.Body.Close()
+		return string(body), nil
+	}
 }
 
 func (conn SplunkConnection) httpPost(url string, data *url.Values) (string, error) {
-        return conn.httpCall(url, "POST", data)
+	if response, err := conn.httpCall(url,"POST",data);err != nil {
+		return "", err
+	} else {
+		body, _ := ioutil.ReadAll(response.Body)
+		response.Body.Close()
+		return string(body), nil
+	}
 }
 
-func (conn SplunkConnection) httpCall(url string, method string, data *url.Values) (string, error) {
+func (conn SplunkConnection) httpCall(url string, method string, data *url.Values) (*http.Response, error) {
         client := httpClient()
 
         var payload io.Reader
@@ -38,19 +50,15 @@ func (conn SplunkConnection) httpCall(url string, method string, data *url.Value
           payload = bytes.NewBufferString(data.Encode())
         }
 
-        request, err := http.NewRequest("POST", url, payload)
+        request, err := http.NewRequest(method, url, payload)
         conn.addAuthHeader(request)
         response, err := client.Do(request)
 
         if err != nil {
-                return "", err
+                return nil, err
         }
-
-        body, _ := ioutil.ReadAll(response.Body)
-        response.Body.Close()
-        return string(body), nil
+	return response, err
 }
-
 
 func (conn SplunkConnection) addAuthHeader(request *http.Request) {
         if conn.sessionKey.Value != "" {
@@ -59,3 +67,5 @@ func (conn SplunkConnection) addAuthHeader(request *http.Request) {
                 request.SetBasicAuth(conn.Username, conn.Password)
         }
 }
+
+
