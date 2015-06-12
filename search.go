@@ -32,13 +32,20 @@ func parseLine(line string) (r Row,err error) {
 	return r, dec.Decode(&r)
 }
 
-func (conn SplunkConnection) Search(searchString string) (rows Rows,err error) {
+func (conn SplunkConnection) Search(searchString string, params ...map[string]string) (rows []Row,err error) {
 	data := make(url.Values)
 	data.Add("search",searchString)
 	data.Add("output_mode","json")
 
+	for _,m := range params {
+		for k,v := range m {
+			data.Add(k,v)
+		}
+	}
+
+
 	/* TODO: return stream in order to read reponses that do not fit in memory. */
-	response, err := conn.httpPost(fmt.Sprintf("%s/servicesNS/admin/search/search/jobs/export",conn.BaseURL),&data)
+	response, err := conn.httpPost(fmt.Sprintf("%s/servicesNS/nobody/search/search/jobs/export",conn.BaseURL),&data)
 
 	if err != nil {
 		return nil,err
@@ -60,7 +67,6 @@ func (conn SplunkConnection) Search(searchString string) (rows Rows,err error) {
 	return rows[:ni], nil;
 }
 
-
 func (conn SplunkConnection) SearchStream(searchString string, params ...map[string]string) (events chan *Row,err error) {
 	data := make(url.Values)
 	data.Add("search",searchString)
@@ -72,8 +78,7 @@ func (conn SplunkConnection) SearchStream(searchString string, params ...map[str
 		}
 	}
 
-	response, err := conn.httpCall(fmt.Sprintf("%s/servicesNS/admin/search/search/jobs/export",conn.BaseURL),"POST",&data)
-
+	response, err := conn.httpCall(fmt.Sprintf("%s/servicesNS/nobody/search/search/jobs/export",conn.BaseURL),"POST",&data)
 	if err != nil {
 		return nil,err
 	}

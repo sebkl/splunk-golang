@@ -17,7 +17,7 @@ type SessionKey struct {
 }
 
 // Login connects to the Splunk server and retrieves a session key
-func (conn SplunkConnection) Login() (SessionKey, error){
+func (conn SplunkConnection) Login() (key SessionKey, err error){
 
         data := make(url.Values)
         data.Add("username", conn.Username)
@@ -30,9 +30,19 @@ func (conn SplunkConnection) Login() (SessionKey, error){
         }
 
         bytes := []byte(response)
-        var key SessionKey
-        unmarshall_error := json.Unmarshal(bytes, &key)
+        err = json.Unmarshal(bytes, &key)
+	if err != nil {
+		return
+	}
+
         conn.sessionKey = key
-        return key, unmarshall_error
+	if !conn.HasSessionKey() {
+		err = fmt.Errorf("Login Failed. No session key received.")
+	}
+        return
+}
+
+func (conn SplunkConnection) HasSessionKey() bool {
+	return len(conn.sessionKey.Value) > 0
 }
 
