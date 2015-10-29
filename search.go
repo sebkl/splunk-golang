@@ -43,7 +43,6 @@ func (conn SplunkConnection) Search(searchString string, params ...map[string]st
 		}
 	}
 
-
 	/* TODO: return stream in order to read reponses that do not fit in memory. */
 	response, err := conn.httpPost(fmt.Sprintf("%s/servicesNS/nobody/search/search/jobs/export",conn.BaseURL),&data)
 
@@ -57,6 +56,9 @@ func (conn SplunkConnection) Search(searchString string, params ...map[string]st
 	ni = 0
 
 	for _,v := range lines {
+		if len(v) == 0 {
+			continue
+		}
 		if r,err := parseLine(v); err != nil {
 			fmt.Printf("Could not decode line: '%s' %s\n",v,err)
 		} else {
