@@ -47,7 +47,7 @@ func (conn SplunkConnection) Search(searchString string, params ...map[string]st
 	response, err := conn.httpPost(fmt.Sprintf("%s/servicesNS/%s/%s/search/jobs/export",conn.BaseURL,conn.SplunkUser,conn.SplunkApp),&data)
 
 	if err != nil {
-		return nil,err
+		return
 	}
 
 	lines := strings.Split(response,"\n")
