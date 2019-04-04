@@ -105,7 +105,7 @@ func (conn SplunkConnection) SearchStream(searchString string, params ...map[str
 				events <- &row
 			}
 		}
-		events <- nil //Signal EOF
+		defer close(events) //Signal EOF
 	}()
 
 	return events,err
